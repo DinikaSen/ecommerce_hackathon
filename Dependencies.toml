@@ -172,14 +172,6 @@ version = "0.0.0"
 
 [[package]]
 org = "ballerina"
-name = "lang.regexp"
-version = "0.0.0"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"}
-]
-
-[[package]]
-org = "ballerina"
 name = "lang.runtime"
 version = "0.0.0"
 dependencies = [
@@ -191,8 +183,7 @@ org = "ballerina"
 name = "lang.string"
 version = "0.0.0"
 dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.regexp"}
+	{org = "ballerina", name = "jballerina.java"}
 ]
 
 [[package]]
@@ -212,6 +203,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"},
 	{org = "ballerina", name = "observe"}
+]
+modules = [
+	{org = "ballerina", packageName = "log", moduleName = "log"}
 ]
 
 [[package]]
@@ -324,6 +318,7 @@ name = "getitems"
 version = "1.0.1"
 dependencies = [
 	{org = "ballerina", name = "graphql"},
+	{org = "ballerina", name = "log"},
 	{org = "ballerinai", name = "observe"}
 ]
 modules = [
