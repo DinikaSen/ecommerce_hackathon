@@ -1,4 +1,4 @@
-import ballerina/graphql;
+import ballerina/http;
 import ballerina/log;
 // import ballerinax/mysql;
 // import ballerina/sql;
@@ -76,9 +76,9 @@ table<ItemDetailsDBEntry> key(itemID) itemsTable = table [
 ];
 
 
-service /items on new graphql:Listener(9090) {
+service /petstore on new http:Listener(9090) {
 
-    resource function get all() returns ItemsPayload|error {
+    resource function get items() returns ItemsPayload|error {
 
         log:printInfo("Received request to GET all items: ");
 
@@ -113,7 +113,7 @@ service /items on new graphql:Listener(9090) {
         return response;
     }
 
-    resource function get state(string state) returns ItemsPayload|error {
+    resource function get items/[string state]() returns ItemsPayload|error {
 
         log:printInfo("Received request to GET items with state: " + state);
 
