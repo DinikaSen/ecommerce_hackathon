@@ -4,17 +4,29 @@ import ballerina/log;
 // import ballerina/sql;
 // import ballerinax/mysql.driver as _;
 
+type stockDetails record {
+    string includes;
+    string intendedFor;
+    string color;
+    string material;
+};
+
 type ItemDetails record {
     readonly int itemID;
     string itemName;
-    string itemImage?;
-    string itemDescription?;
+    string itemImage;
+    string itemDescription;
     float itemPrice;
-    boolean is_followed;
+    stockDetails stockDetails;
 };
 
 type ItemsPayload record {
     ItemDetails[] itemDetails;
+};
+
+type ItemFollows record {
+    readonly string userID;
+    readonly int itemID;
 };
 
 type Item record {
@@ -25,56 +37,67 @@ type Item record {
     float itemPrice;
 };
 
-type ItemDetailsDBEntry record {
-    readonly int itemID;
-    string itemName;
-    string itemImage?;
-    string itemDescription?;
-    float itemPrice;
-    boolean is_followed;
-    string state?;
-};
-
 // configurable string dbHost = ?;
 // configurable string dbUser = ?;
 // configurable string dbPassword = ?;
 // configurable string dbName = ?;
 
-table<ItemDetailsDBEntry> key(itemID) itemsTable = table [
+table<ItemDetails> key(itemID) itemsTable = table [
     {
         itemID: 1, 
         itemName: "Top Paw® Valentine's Day Single Dog Sweater", 
-        itemDescription: "Description", 
+        itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+        itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle", 
         itemPrice: 115.99,
-        is_followed: true,
-        state:"in_cart"
+        stockDetails: {
+            includes: "1 Sweater",
+            intendedFor: "Dogs",
+            color: "Blue, Red, Yellow",
+            material: "100% Acrylic"
+        }
     },
     {
         itemID: 2, 
-        itemName: "Arcadia Trail™ Dog Windbreaker", 
-        itemDescription: "Description", 
-        itemPrice: 200.00,
-        is_followed: false,
-        state:"in_cart"
+        itemName: "Item 2", 
+        itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+        itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle", 
+        itemPrice: 100,
+        stockDetails: {
+            includes: "1 Sweater",
+            intendedFor: "Dogs",
+            color: "Blue, Red, Yellow",
+            material: "100% Acrylic"
+        }
     },
     {
         itemID: 3, 
-        itemName: "Top Paw® Valentine's Day Kisses Dog Tee and Bandana", 
-        itemDescription: "Description", 
-        itemPrice: 999.99,
-        is_followed: true,
-        state:"not_in_cart"
-    },
-    {
-        itemID: 4, 
-        itemName: "Item 4 name", 
-        itemDescription: "Item 4 Description", 
-        itemPrice: 10.00,
-        is_followed: false,
-        state:"not_in_cart"
+        itemName: "Item 3", 
+        itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+        itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle", 
+        itemPrice: 299.99,
+        stockDetails: {
+            includes: "1 Sweate",
+            intendedFor: "Dogs",
+            color: "Blue, Red, Yellow",
+            material: "100% Acrylic"
+        }
     }
 ];
 
+table<ItemFollows> key(userID, itemID) itemFolowsTable = table [
+    {
+        userID:"19ef6598-c7c1-4586-acee-1a8be0426899",
+        itemID: 1
+    },
+    {
+        userID:"19ef6598-c7c1-4586-acee-1a8be0426899",
+        itemID: 3
+    },
+    {
+        userID:"test",
+        itemID: 1
+    }
+];
 
 service /petstore on new http:Listener(9090) {
 
@@ -86,7 +109,7 @@ service /petstore on new http:Listener(9090) {
         // sql:ParameterizedQuery getItemsPerStateQuery = `SELECT * FROM Items WHERE state = ${state}`;
         // int fetchedRecords = check mysqlEp->queryRow(getItemsPerStateQuery);
 
-        ItemDetailsDBEntry[] dataFromDB = from var i in itemsTable select i;
+        ItemDetails[] itemDetails = from var i in itemsTable select i;
         
         // if (fetchedRecords == 0) {
         //     check mysqlEp.close();
@@ -95,56 +118,17 @@ service /petstore on new http:Listener(9090) {
         
         //stream<patientDetails, sql:Error?> resultStream = mysqlEp->query(detailsQuery);
 
-        ItemDetails[] itemDetails = [];
-        check from ItemDetailsDBEntry entry in dataFromDB
-            do {
-                ItemDetails item = {
-                    itemID: entry.itemID,
-                    itemName: entry.itemName,
-                    itemDescription: <string> entry.itemDescription,
-                    itemPrice: entry.itemPrice,
-                    is_followed: entry.is_followed
-                };
-                itemDetails.push(item);
-            };
-
         ItemsPayload response = {itemDetails};
-        // check mysqlEp.close();
+        
         return response;
     }
 
-    resource function get items/[string state]() returns ItemsPayload|error {
+    resource function get itemsFollowed/[string userID]() returns ItemFollows[]|error {
 
-        log:printInfo("Received request to GET items with state: " + state);
+        log:printInfo("Received request to GET items followed for user : " + userID);
 
-        // mysql:Client mysqlEp = check new (host = dbHost, port = 3306, user = dbUser, password = dbPassword, database = dbName);
-        // sql:ParameterizedQuery getItemsPerStateQuery = `SELECT * FROM Items WHERE state = ${state}`;
-        // int fetchedRecords = check mysqlEp->queryRow(getItemsPerStateQuery);
+        ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == userID select i;
 
-        ItemDetailsDBEntry[] dataFromDB = from var i in itemsTable where i.state == state select i;
-        
-        // if (fetchedRecords == 0) {
-        //     check mysqlEp.close();
-        //     return response;
-        // }
-        
-        //stream<patientDetails, sql:Error?> resultStream = mysqlEp->query(detailsQuery);
-
-        ItemDetails[] itemDetails = [];
-        check from ItemDetailsDBEntry entry in dataFromDB
-            do {
-                ItemDetails item = {
-                    itemID: entry.itemID,
-                    itemName: entry.itemName,
-                    itemDescription: <string> entry.itemDescription,
-                    itemPrice: entry.itemPrice,
-                    is_followed: entry.is_followed
-                };
-                itemDetails.push(item);
-            };
-
-        ItemsPayload response = {itemDetails};
-        // check mysqlEp.close();
-        return response;
+        return dataFromDB;
     }
 }
