@@ -131,4 +131,14 @@ service /petstore on new http:Listener(9090) {
 
         return dataFromDB;
     }
+
+    resource function post followItem(@http:Payload ItemFollows itemTobeFollowed)
+                                    returns ItemFollows[]|error {
+
+        // ADD part here
+
+        ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == itemTobeFollowed.userID select i;
+        return dataFromDB;
+        
+    }
 }
