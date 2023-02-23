@@ -123,15 +123,6 @@ service /petstore on new http:Listener(9090) {
         return response;
     }
 
-    resource function get itemsFollowed/[string userID]() returns ItemFollows[]|error {
-
-        log:printInfo("Received request to GET items followed for user : " + userID);
-
-        ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == userID select i;
-
-        return dataFromDB;
-    }
-
     resource function post followItem(@http:Payload ItemFollows itemTobeFollowed)
                                     returns ItemFollows[]|error {
 
@@ -140,5 +131,14 @@ service /petstore on new http:Listener(9090) {
         ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == itemTobeFollowed.userID select i;
         return dataFromDB;
         
+    }
+
+    resource function get itemsFollowedBy/[string userID]() returns ItemFollows[]|error {
+
+        log:printInfo("Received request to GET items followed for user : " + userID);
+
+        ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == userID select i;
+
+        return dataFromDB;
     }
 }
