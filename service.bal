@@ -1,5 +1,6 @@
 import ballerina/http;
 import ballerina/log;
+import ballerina/lang.'int;
 // import ballerinax/mysql;
 // import ballerina/sql;
 // import ballerinax/mysql.driver as _;
@@ -140,5 +141,43 @@ service /petstore on new http:Listener(9090) {
         ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == userID select i;
 
         return dataFromDB;
+    }
+
+    resource function post addItem(@http:Payload ItemDetails addPayload)
+                                    returns ItemDetails|error|http:BadRequest {
+
+        if (itemsTable.hasKey(addPayload.itemID)) {
+            return http:BAD_REQUEST;
+        }
+        itemsTable.add(addPayload);
+        return itemsTable.get(addPayload.itemID); 
+    }
+
+    resource function put updateItem/[string itemID](@http:Payload ItemDetails updatePayload)
+                                    returns ItemDetails|error|http:NotFound {
+
+        // DB Query part here
+        // ballerina string to int code
+        int itemIDInt = check int:fromString(itemID);
+        if (!itemsTable.hasKey(itemIDInt)) {
+            return http:NOT_FOUND;
+        }
+        ItemDetails _ = itemsTable.remove(itemIDInt);
+        itemsTable.add(updatePayload);
+        //ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == itemTobeFollowed.userID select i;
+        return itemsTable.get(updatePayload.itemID); 
+    }
+
+    resource function delete deleteItem/[string itemID]()
+                                    returns http:NoContent|error|http:NotFound {
+
+        // DB Query part here
+        // ballerina string to int code
+        int itemIDInt = check int:fromString(itemID);
+        if (!itemsTable.hasKey(itemIDInt)) {
+            return http:NOT_FOUND;
+        }
+        ItemDetails _ = itemsTable.remove(itemIDInt);
+        return http:NO_CONTENT;
     }
 }
