@@ -7,20 +7,16 @@ import ballerina/lang.'int;
 // import ballerina/sql;
 // import ballerinax/mysql.driver as _;
 
-type stockDetails record {
-    string includes;
-    string intendedFor;
-    string color;
-    string material;
-};
-
 type ItemDetails record {
     readonly int itemID;
     string itemName;
     string itemImage;
     string itemDescription;
-    float itemPrice;
-    stockDetails stockDetails;
+    string itemPrice;
+    string includes;
+    string intendedFor;
+    string color;
+    string material;
 };
 
 type ItemsPayload record {
@@ -56,39 +52,44 @@ table<ItemDetails> key(itemID) itemsTable = table [
             itemName: "Top Paw® Valentine's Day Single Dog Sweater",
             itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
             itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle",
-            itemPrice: 115.99,
-            stockDetails: {
-                includes: "1 Sweater",
-                intendedFor: "Dogs",
-                color: "Blue, Red, Yellow",
-                material: "100% Acrylic"
-            }
+            itemPrice: "115.99",
+            includes: "1 Sweater",
+            intendedFor: "Dogs",
+            color: "Blue, Red, Yellow",
+            material: "100% Acrylic"
         },
         {
-            itemID: 2,
-            itemName: "Item 2",
-            itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
-            itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle",
-            itemPrice: 100,
-            stockDetails: {
-                includes: "1 Sweater",
-                intendedFor: "Dogs",
-                color: "Blue, Red, Yellow",
-                material: "100% Acrylic"
-            }
+            "itemID": 2,
+            "itemName": "Top Paw® Dog Raincoat",
+            "itemImage": "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+            "itemDescription": "Keep your furry friend dry during rainy days with this Top Paw Dog Raincoat. The raincoat features a water-resistant design that ensures your pet stays dry and comfortable during wet weather, while the lightweight fabric provides a comfortable fit. ",
+            "itemPrice": "89.99",
+            "includes": "1 Raincoat",
+            "intendedFor": "Dogs",
+            "color": "Yellow",
+            "material": "Polyester"
         },
         {
-            itemID: 3,
-            itemName: "Item 3",
-            itemImage: "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
-            itemDescription: "Dress your pup up appropriately for Valentine's Day with this Top Paw Valentine's Day Kisses Dog Sweater. This sweet sweater slips on and off easily while offering a comfortable fit, and lets it be known that your pup is single and ready to mingle",
-            itemPrice: 299.99,
-            stockDetails: {
-                includes: "1 Sweate",
-                intendedFor: "Dogs",
-                color: "Blue, Red, Yellow",
-                material: "100% Acrylic"
-            }
+            "itemID": 3,
+            "itemName": "KONG® Puppy Toy",
+            "itemImage": "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+            "itemDescription": "Keep your puppy entertained and engaged with this KONG Puppy Toy. The toy is designed with soft rubber that's gentle on your puppy's teeth and gums, and has a unique shape that helps to clean teeth and soothe sore gums.",
+            "itemPrice": "14.99",
+             "includes": "1 Toy",
+            "intendedFor": "Puppies",
+            "color": "Pink, Blue",
+            "material": "Rubber"
+        },
+        {
+            "itemID": 4,
+            "itemName": "Whisker City® Cat Scratching Post",
+            "itemImage": "https://user-images.githubusercontent.com/25479743/220543717-b02a11ec-ce58-42dd-a650-33a33c8ebd9a.png",
+            "itemDescription": "Keep your cat entertained and scratching in style with this Whisker City Cat Scratching Post. The post is made with durable materials that are designed to withstand scratching and play, and has a unique design that adds style to your home decor.",
+            "itemPrice": "59.99",
+            "includes": "1 Scratching Post",
+            "intendedFor": "Cats",
+            "color": "Beige",
+            "material": "Sisal"
         }
     ];
 
@@ -222,8 +223,17 @@ service /petstore on new http:Listener(9090) {
                 itemToBeUpdated.itemPrice = updatePayload.itemPrice;
                 notifyAllItemSubscribers(updatePayload.itemID, updatePayload.itemPrice);
             }
-            if (itemToBeUpdated.stockDetails != updatePayload.stockDetails) {
-                itemToBeUpdated.stockDetails = updatePayload.stockDetails;
+            if (itemToBeUpdated.includes != updatePayload.includes) {
+                itemToBeUpdated.includes = updatePayload.includes;
+            }
+            if (itemToBeUpdated.intendedFor != updatePayload.intendedFor) {
+                itemToBeUpdated.intendedFor = updatePayload.intendedFor;
+            }
+            if (itemToBeUpdated.color != updatePayload.color) {
+                itemToBeUpdated.color = updatePayload.color;
+            }
+            if (itemToBeUpdated.material != updatePayload.material) {
+                itemToBeUpdated.material = updatePayload.material;
             }
             ItemDetails _ = itemsTable.remove(updatePayload.itemID);
             itemsTable.add(itemToBeUpdated);
@@ -234,7 +244,7 @@ service /petstore on new http:Listener(9090) {
     }
 }
 
-function notifyAllItemSubscribers(int itemID, float itemPrice) {
+function notifyAllItemSubscribers(int itemID, string itemPrice) {
 
     do {
 	    sendemail:Client sendemailEp = check new ();
@@ -244,7 +254,7 @@ function notifyAllItemSubscribers(int itemID, float itemPrice) {
         where item.itemID == itemID
         select item.userID;
         string subject = "Item Price Update";
-        string body = "The price of the item with ID " + itemID.toString() + " has been updated to " + itemPrice.toString();
+        string body = "The price of the item with ID " + itemID.toString() + " has been updated to " + itemPrice;
         foreach var user in usersList {
             string email = userEmailRecords.get(user).emailAddress;
             string|error sendEmailResult = sendemailEp->sendEmail(email, subject, body);
