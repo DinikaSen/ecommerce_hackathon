@@ -259,7 +259,6 @@ service /petstore on new http:Listener(9090) {
             if (itemToBeUpdated.material != updatePayload.material) {
                 itemToBeUpdated.material = updatePayload.material;
             }
-            ItemDetails _ = itemsTable.remove(updatePayload.itemID);
             itemsTable.put(itemToBeUpdated);
         } else {
             return http:NOT_FOUND;
