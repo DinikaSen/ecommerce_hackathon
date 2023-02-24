@@ -167,6 +167,17 @@ service /petstore on new http:Listener(9090) {
         return dataFromDB;
     }
 
+    resource function get itemsFollowedByV2(string userID) returns ItemFollows[]|error {
+
+        log:printInfo("Received request to GET items followed for user : " + userID);
+
+        ItemFollows[] dataFromDB = from var i in itemFolowsTable
+            where i.userID == userID
+            select i;
+
+        return dataFromDB;
+    }
+
     resource function post addItem(@http:Payload ItemDetails addPayload)
                                     returns ItemDetails|error|http:BadRequest {
 
@@ -186,8 +197,7 @@ service /petstore on new http:Listener(9090) {
         if (!itemsTable.hasKey(itemIDInt)) {
             return http:NOT_FOUND;
         }
-        ItemDetails _ = itemsTable.remove(itemIDInt);
-        itemsTable.add(updatePayload);
+        itemsTable.put(updatePayload);
         //ItemFollows[] dataFromDB = from var i in itemFolowsTable where i.userID == itemTobeFollowed.userID select i;
         return itemsTable.get(updatePayload.itemID);
     }
@@ -204,6 +214,20 @@ service /petstore on new http:Listener(9090) {
         ItemDetails _ = itemsTable.remove(itemIDInt);
         return http:NO_CONTENT;
     }
+
+     resource function delete deleteItemV2(string itemID)
+                                    returns http:NoContent|error|http:NotFound {
+
+        // DB Query part here
+        // ballerina string to int code
+        int itemIDInt = check int:fromString(itemID);
+        if (!itemsTable.hasKey(itemIDInt)) {
+            return http:NOT_FOUND;
+        }
+        ItemDetails _ = itemsTable.remove(itemIDInt);
+        return http:NO_CONTENT;
+    }
+
 
     resource function patch updateItemV2(@http:Payload ItemDetails updatePayload)
                                     returns ItemDetails|error|http:NotFound {
@@ -236,7 +260,7 @@ service /petstore on new http:Listener(9090) {
                 itemToBeUpdated.material = updatePayload.material;
             }
             ItemDetails _ = itemsTable.remove(updatePayload.itemID);
-            itemsTable.add(itemToBeUpdated);
+            itemsTable.put(itemToBeUpdated);
         } else {
             return http:NOT_FOUND;
         }
